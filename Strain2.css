@@ -34,30 +34,57 @@
   /* =========================================
      GLOBAL
   ========================================= */
-  html,body {
-      height: 100%;
-      margin: 0;
-  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+input, select, textarea {
+    font-size: 16px;
+}
+
   body {
       background: var(--bg);
       color: var(--text);
       font-family: Arial, Helvetica, sans-serif;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
   }
   .container {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      padding-bottom: 80px; /* space for tab nav + quick add */
-      max-width: 900px;
-      margin: 0 auto;
-      width: 100%;
-  }
+    flex: 1;
+    overflow-y: auto;   /* only this scrolls */
+    -webkit-overflow-scrolling: touch; /* smooth scroll on mobile */
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 110px; /* space for bottom tab nav */
+    box-sizing: border-box;
+}
+
 
   /* Screens */
-  .screen { display: none; }
-  .screen.active { display: block; }
+  .screen {
+    min-height: calc(100vh - 60px); /* leave space for tab nav if needed */
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+.screen.active {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+}
+
 
   /* Cards */
   .day-card, .widget, .exercise-log, .progress-card, .best-lift-item, .current-exercise-input {
@@ -68,6 +95,18 @@
       margin: 10px 0;
       box-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
+  .day-card, .best-lift-item, .exercise-log {
+    transition: all 0.3s ease;
+}
+.day-card.new, .best-lift-item.new, .exercise-log.new {
+    transform: translateY(-10px);
+    opacity: 0;
+    animation: dropIn 0.3s forwards;
+}
+
+@keyframes dropIn {
+    to { transform: translateY(0); opacity: 1; }
+}
 
   /* Tab nav */
   .tab-nav {
@@ -81,6 +120,7 @@
       box-shadow: 0 -2px 5px rgba(0,0,0,0.5);
       z-index: 900;
   }
+
   .tab-nav button {
       background: none;
       border: none;
@@ -90,6 +130,17 @@
       cursor: pointer;
   }
   .tab-nav button.active { color: var(--accent); font-weight: 600; }
+
+  button {
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+button:active {
+    transform: scale(0.96);
+}
+button:hover {
+    background-color: #005fcc; /* slightly darker */
+}
+
 
   /* Day card */
   .day-card { position: relative; }
@@ -155,7 +206,17 @@
       border: 1px solid rgba(255,255,255,0.08);
       color: var(--text);
       border-radius: 6px;
+      font-size: 16px;
   }
+  input.logged {
+    animation: flash 0.2s;
+}
+
+@keyframes flash {
+    from { background-color: #4CAF50; }
+    to { background-color: var(--card); }
+}
+
   .add-set-btn {
       background: var(--accent);
       color: #fff;
@@ -203,7 +264,12 @@
       cursor: pointer;
       box-shadow: 0 6px 18px rgba(0,0,0,0.5);
       z-index: 950;
+      animation: pulse 2s infinite;
   }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
   #workout-history {
     max-height: 300px; 
     overflow-y: auto;

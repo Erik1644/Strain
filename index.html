@@ -6,12 +6,7 @@
     <title>Strain - Strength Training App</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="Strain2.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js');
-        }
-        </script>        
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
 </head>
 
 <body data-theme="dark">
@@ -250,6 +245,8 @@ function renderBestLifts() {
 
         // Add button to start tracking lifts
         const addBtn = document.createElement('button');
+        addBtn.className = '#best-lifts-list'; // or #best-lifts-list > button works if you append to #best-lifts-list
+
         addBtn.textContent = '+ Add Lift';
         addBtn.onclick = addBestLift;
         container.appendChild(addBtn);
@@ -635,7 +632,7 @@ function renderBestLifts() {
       window.volumeChartInstance = new Chart(ctx, {
           type: 'line',
           data: { labels, datasets: [{ label: 'Total Workout Volume (kg)', data, borderColor: '#007AFF', backgroundColor: 'rgba(0,122,255,0.18)', fill:true, tension:0.3, pointRadius:4 }] },
-          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
+          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}, animation: { duration: 800, easing: 'easeOutQuart' }}
       });
   }
 
@@ -727,6 +724,66 @@ function renderBestLifts() {
       // close menu if clicked outside
       document.addEventListener('click', () => { profileMenu.style.display = 'none'; themeSubmenu.style.display = 'none'; });
   })();
+
+
+
+  
+
+  // Switch between screens when clicking tab buttons
+const tabs = document.querySelectorAll('.tab-nav button');
+const screens = document.querySelectorAll('.screen');
+
+tabs.forEach((tab, idx) => {
+  tab.addEventListener('click', () => {
+    screens.forEach(s => s.classList.remove('active'));
+    screens[idx].classList.add('active');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+const quickBtn = document.getElementById('quick-add-btn');
+if (quickBtn) {
+  quickBtn.addEventListener('click', () => {
+    quickBtn.style.transform = 'scale(0.95)';
+    setTimeout(() => quickBtn.style.transform = 'scale(1)', 100);
+  });
+}
+
+// Flash input on change and prevent iOS zoom
+document.querySelectorAll('input, select, textarea').forEach(input => {
+  input.addEventListener('input', () => {
+    input.classList.add('logged');
+    setTimeout(() => input.classList.remove('logged'), 200);
+  });
+
+  input.addEventListener('focus', () => {
+    document.body.style.fontSize = '16px'; // stops iOS zoom-in
+  });
+});
+
+document.querySelectorAll('#best-lifts-list button, .best-lift-item button').forEach(btn => {
+  btn.addEventListener('mousedown', () => btn.style.opacity = '0.7');
+  btn.addEventListener('mouseup', () => btn.style.opacity = '1');
+  btn.addEventListener('mouseleave', () => btn.style.opacity = '1');
+});
+
+// Apply .new class to cards/lifts dynamically for drop-in animation
+function animateNewElement(el) {
+  el.classList.add('new');
+  el.addEventListener('animationend', () => el.classList.remove('new'));
+}
+
   </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registered.', reg))
+                .catch(err => console.log('Service Worker failed:', err));
+        });
+    }
+    </script>    
 </body>
 </html>
