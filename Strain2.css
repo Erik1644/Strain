@@ -1,0 +1,268 @@
+
+  /* =========================================
+     THEME VARIABLES (defaults)
+  ========================================= */
+  :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #ffffff;
+      --accent: #007AFF;
+  }
+
+  /* Light/alternate themes will set data-theme on body to "dark"/"blue"/"orange" later */
+
+  /* Apply theme variables if data-theme used */
+  body[data-theme="dark"] {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #ffffff;
+      --accent: #007AFF;
+  }
+  body[data-theme="blue"] {
+      --bg: #0d1117;
+      --card: #161b22;
+      --text: #dfe6ff;
+      --accent: #3fa7ff;
+  }
+  body[data-theme="orange"] {
+      --bg: #1a1200;
+      --card: #332400;
+      --text: #ffe5d1;
+      --accent: #ff7a3d;
+  }
+
+  /* =========================================
+     GLOBAL
+  ========================================= */
+  html,body {
+      height: 100%;
+      margin: 0;
+  }
+  body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+  }
+  .container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      padding-bottom: 80px; /* space for tab nav + quick add */
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+  }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Cards */
+  .day-card, .widget, .exercise-log, .progress-card, .best-lift-item, .current-exercise-input {
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  /* Tab nav */
+  .tab-nav {
+      display: flex;
+      justify-content: space-around;
+      background: var(--card);
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.5);
+      z-index: 900;
+  }
+  .tab-nav button {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      padding: 8px 12px;
+      cursor: pointer;
+  }
+  .tab-nav button.active { color: var(--accent); font-weight: 600; }
+
+  /* Day card */
+  .day-card { position: relative; }
+  .menu-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+  }
+  .start-workout-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+  }
+
+  .menu-dropdown {
+      position: absolute;
+      top: 35px;
+      right: 10px;
+      background: #2a2a2a;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 8px;
+      z-index: 100;
+  }
+  .menu-dropdown button { display:block; width:100%; background:none; border:none; color:var(--text); padding:8px; text-align:left; cursor:pointer; }
+
+  .add-day-btn {
+      background: none;
+      color: var(--accent);
+      border: 2px dashed var(--accent);
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+  }
+
+  .widgets-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+  }
+  .widget h3 { margin: 0 0 8px 0; color: var(--accent); font-size:14px; }
+
+  /* Input, buttons */
+  .set-input { display:flex; gap:10px; margin:10px 0; }
+  .set-input input {
+      flex: 1;
+      padding: 10px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      border-radius: 6px;
+  }
+  .add-set-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px 3px;
+  }
+
+  /* Special fixed color buttons */
+  .add-exercise-btn { background: #4CAF50; color:#fff; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; }
+  .remove-exercise-btn { background: #f44336; color:#fff; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; }
+
+  /* Exercise log states */
+  .exercise-log.completed { opacity: 0.7; border-left: 4px solid #4CAF50; }
+  .exercise-log.current { border-left: 4px solid var(--accent); }
+
+  .previous-week-hint { background: rgba(255,255,255,0.02); padding:8px; border-left:3px solid var(--accent); border-radius:6px; color:#ccc; }
+
+  /* Best lift items */
+  .best-lift-item { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; }
+  .best-lift-item span { margin-right:8px; }
+  /* Edit button in best-lift uses normal themed button */
+  .best-lift-item button { padding:6px 10px; border-radius:6px; font-size:13px; }
+  /* Trash button fixed red */
+  .remove-best-lift-btn { background: transparent !important; color: #f73123 !important; border:none; cursor:pointer; font-size:18px; }
+
+  /* Progress cards */
+  .progress-card h3 { margin:0 0 6px 0; color: var(--accent); }
+  .progress-card p { margin:3px 0; color:#ccc; font-size:14px; }
+
+  /* Quick Add floating button */
+  #quick-add-btn {
+      position: fixed;
+      bottom: 110px;
+      right: 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      z-index: 950;
+  }
+  #workout-history {
+    max-height: 300px; 
+    overflow-y: auto;
+}
+
+
+  /* Profile menu / submenu */
+  #profile-btn { position: fixed; top: 12px; right: 12px; background: var(--card); color:var(--text); border:none; width:44px; height:44px; border-radius:50%; font-size:20px; z-index:1000; }
+  .profile-dropdown { display:none; position:fixed; top:60px; right:12px; background:var(--card); border-radius:8px; padding:10px; box-shadow:0 6px 18px rgba(0,0,0,0.4); z-index:1000; width:190px; }
+  .profile-dropdown button { display:block; width:100%; background:var(--accent); color:#fff; border:none; padding:8px; margin:6px 0; border-radius:6px; text-align:left; }
+
+  .profile-submenu { display:none; margin-left:0; padding-left:8px; border-left: 2px solid rgba(255,255,255,0.04); margin-top:6px; }
+  .profile-submenu button { background:#2a2a2a; border:1px solid rgba(255,255,255,0.03); color:var(--text); padding:8px; border-radius:6px; margin:6px 0; text-align:left; }
+
+  .no-data { color: #aaa; text-align:center; padding:12px; }
+
+  /* Best Lifts Buttons */
+.best-lift-item button {
+    background-color: #007AFF; /* blue accent */
+    color: #ffffff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Trash button */
+.best-lift-item .remove-best-lift-btn {
+    background-color: transparent;
+    color: #f73123; /* red */
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 5px;
+}
+
+/* + Add Lift button */
+#best-lifts-list > button {
+    background-color: #007AFF; /* same accent as other buttons */
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 5px;
+    width: 100%; /* full width under the lifts */
+    box-sizing: border-box;
+}
+
+#best-lifts-list > button:hover {
+    background-color: #005fcc; /* slightly darker on hover */
+}
+
+
+  /* small screens */
+  @media (max-width: 600px) {
+      .widgets-container { grid-template-columns: 1fr; gap:10px; }
+      .container { padding:12px; padding-bottom:110px; }
+  }
