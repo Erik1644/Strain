@@ -162,94 +162,140 @@
   // ------------------------------
   // Best Lifts (DOM-based)
   // ------------------------------
-  function renderBestLifts() {
-    const container = document.getElementById('best-lifts-list');
-    container.innerHTML = '';
+  // --- BEST LIFTS FUNCTIONS ---
 
-    // No lifts yet
-    if (!Array.isArray(appData.bestLifts) || appData.bestLifts.length === 0) {
-        const noDataDiv = document.createElement('div');
-        noDataDiv.className = 'no-data';
-        noDataDiv.innerHTML = 'No best lifts recorded yet.<br>';
-        container.appendChild(noDataDiv);
+// Remove a lift
+function removeBestLift(index) {
+    if (confirm('Remove this lift from Best Lifts?')) {
+        appData.bestLifts.splice(index, 1);
+        saveData();
+        renderBestLifts();
+    }
+}
 
-        const addBtn = document.createElement('button');
-        addBtn.textContent = '+ Add Lift';
-        addBtn.onclick = addBestLift;
-        container.appendChild(addBtn); // Direct child so CSS applies
+// Edit a lift
+function editBestLift(index) {
+    const lift = appData.bestLifts[index];
+    if (!lift) return;
+
+    const allExercises = getAllExercises();
+    if (allExercises.length === 0) {
+        alert('No exercises available to track.');
         return;
     }
 
-    // Render existing best lifts
+    const exerciseName = prompt(
+        `Enter new exercise name to track:\nAvailable: ${allExercises.join(', ')}`,
+        lift.exercise
+    );
+
+    if (!exerciseName) return;
+    if (!allExercises.includes(exerciseName)) {
+        alert('Exercise not found. Make sure you type it exactly as in your days.');
+        return;
+    }
+
+    lift.exercise = exerciseName;
+    lift.weight = 0; // reset values
+    lift.reps = 0;
+
+    saveData();
+    renderBestLifts();
+}
+
+// Add a new lift
+function addBestLift() {
+    if (appData.bestLifts.length >= 3) {
+        alert('You can only track up to 3 exercises for Best Lifts.');
+        return;
+    }
+
+    const allExercises = getAllExercises();
+    if (allExercises.length === 0) {
+        alert('No exercises available. Add exercises to your days first.');
+        return;
+    }
+
+    let message = 'Available exercises:\n';
+    allExercises.forEach((exercise, index) => {
+        message += `${index + 1}. ${exercise}\n`;
+    });
+
+    const exerciseName = prompt(`${message}\nEnter exercise name to track:`);
+
+    if (exerciseName && allExercises.includes(exerciseName)) {
+        if (appData.bestLifts.find(l => l.exercise === exerciseName)) {
+            alert('You are already tracking this exercise!');
+            return;
+        }
+
+        appData.bestLifts.push({ exercise: exerciseName, weight: 0, reps: 0 });
+        saveData();
+        renderBestLifts();
+    } else if (exerciseName) {
+        alert('Exercise not found. Make sure you type the exact exercise name from your days.');
+    }
+}
+
+// Render the Best Lifts list
+function renderBestLifts() {
+    const container = document.getElementById('best-lifts-list');
+    container.innerHTML = '';
+
+    if (!appData.bestLifts || appData.bestLifts.length === 0) {
+        const noDataDiv = document.createElement('div');
+        noDataDiv.className = 'no-data';
+        noDataDiv.innerHTML = `No best lifts recorded`;
+        container.appendChild(noDataDiv);
+
+        // Add button to start tracking lifts
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ Add Lift';
+        addBtn.onclick = addBestLift;
+        container.appendChild(addBtn);
+        return;
+    }
+
     appData.bestLifts.forEach((lift, index) => {
         const liftDiv = document.createElement('div');
         liftDiv.className = 'best-lift-item';
 
-        // Exercise name and weight/reps
         const nameSpan = document.createElement('span');
         nameSpan.textContent = lift.exercise;
+
         const valueSpan = document.createElement('span');
         valueSpan.textContent = `${lift.weight}kg × ${lift.reps}`;
-        liftDiv.appendChild(nameSpan);
-        liftDiv.appendChild(valueSpan);
 
         // Edit button
         const editBtn = document.createElement('button');
         editBtn.textContent = 'Edit';
         editBtn.onclick = () => editBestLift(index);
-        liftDiv.appendChild(editBtn);
 
         // Trash button
         const trashBtn = document.createElement('button');
         trashBtn.textContent = '🗑️';
         trashBtn.className = 'remove-best-lift-btn';
         trashBtn.onclick = () => removeBestLift(index);
+
+        liftDiv.appendChild(nameSpan);
+        liftDiv.appendChild(valueSpan);
+        liftDiv.appendChild(editBtn);
         liftDiv.appendChild(trashBtn);
 
         container.appendChild(liftDiv);
     });
 
-    // + Add Lift button if less than 3 lifts
+    // + Add Lift button below existing lifts
     if (appData.bestLifts.length < 3) {
         const addBtn = document.createElement('button');
         addBtn.textContent = '+ Add Lift';
         addBtn.onclick = addBestLift;
-        container.appendChild(addBtn); // Direct child so CSS applies
+        addBtn.style.marginTop = '5px';
+        addBtn.style.width = '100%';
+        container.appendChild(addBtn);
     }
 }
 
-  function addBestLift() {
-      if (appData.bestLifts.length >= 3) {
-          alert('You can only track up to 3 exercises for Best Lifts.');
-          return;
-      }
-
-      const allExercises = getAllExercises();
-      if (allExercises.length === 0) {
-          alert('No exercises available. Add exercises to your days first.');
-          return;
-      }
-
-      let message = 'Available exercises:\n';
-      allExercises.forEach((exercise, index) => {
-          message += `${index + 1}. ${exercise}\n`;
-      });
-
-      const exerciseName = prompt(`${message}\nEnter exercise name to track:`);
-
-      if (exerciseName && allExercises.includes(exerciseName)) {
-          if (appData.bestLifts.find(l => l.exercise === exerciseName)) {
-              alert('You are already tracking this exercise!');
-              return;
-          }
-
-          appData.bestLifts.push({ exercise: exerciseName, weight: 0, reps: 0 });
-          renderHomeScreen();
-          saveData();
-      } else if (exerciseName) {
-          alert('Exercise not found. Make sure you type the exact exercise name from your days.');
-      }
-  }
 
   function getAllExercises() {
       return [...new Set(appData.days.flatMap(day => day.exercises.map(ex => ex.name)))];
