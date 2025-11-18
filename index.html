@@ -163,93 +163,60 @@
   // Best Lifts (DOM-based)
   // ------------------------------
   function renderBestLifts() {
-      const container = document.getElementById('best-lifts-list');
-      container.innerHTML = '';
+    const container = document.getElementById('best-lifts-list');
+    container.innerHTML = '';
 
-      if (!Array.isArray(appData.bestLifts) || appData.bestLifts.length === 0) {
-          const noDataDiv = document.createElement('div');
-          noDataDiv.className = 'no-data';
-          noDataDiv.innerHTML = `No best lifts recorded<br>`;
-          const addBtn = document.createElement('button');
-          addBtn.textContent = 'Add Lift';
-          addBtn.onclick = addBestLift;
-          noDataDiv.appendChild(addBtn);
-          container.appendChild(noDataDiv);
-          return;
-      }
+    // No lifts yet
+    if (!Array.isArray(appData.bestLifts) || appData.bestLifts.length === 0) {
+        const noDataDiv = document.createElement('div');
+        noDataDiv.className = 'no-data';
+        noDataDiv.innerHTML = 'No best lifts recorded yet.<br>';
+        container.appendChild(noDataDiv);
 
-      appData.bestLifts.forEach((lift, index) => {
-          const liftDiv = document.createElement('div');
-          liftDiv.className = 'best-lift-item';
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ Add Lift';
+        addBtn.onclick = addBestLift;
+        container.appendChild(addBtn); // Direct child so CSS applies
+        return;
+    }
 
-          const nameSpan = document.createElement('span');
-          nameSpan.textContent = lift.exercise;
-          const valueSpan = document.createElement('span');
-          valueSpan.textContent = `${lift.weight}kg × ${lift.reps}`;
+    // Render existing best lifts
+    appData.bestLifts.forEach((lift, index) => {
+        const liftDiv = document.createElement('div');
+        liftDiv.className = 'best-lift-item';
 
-          liftDiv.appendChild(nameSpan);
-          liftDiv.appendChild(valueSpan);
+        // Exercise name and weight/reps
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = lift.exercise;
+        const valueSpan = document.createElement('span');
+        valueSpan.textContent = `${lift.weight}kg × ${lift.reps}`;
+        liftDiv.appendChild(nameSpan);
+        liftDiv.appendChild(valueSpan);
 
-          const editBtn = document.createElement('button');
-          editBtn.textContent = 'Edit';
-          editBtn.onclick = () => editBestLift(index);
-          liftDiv.appendChild(editBtn);
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => editBestLift(index);
+        liftDiv.appendChild(editBtn);
 
-          const trashBtn = document.createElement('button');
-          trashBtn.textContent = '🗑️';
-          trashBtn.className = 'remove-best-lift-btn';
-          trashBtn.onclick = () => removeBestLift(index);
-          liftDiv.appendChild(trashBtn);
+        // Trash button
+        const trashBtn = document.createElement('button');
+        trashBtn.textContent = '🗑️';
+        trashBtn.className = 'remove-best-lift-btn';
+        trashBtn.onclick = () => removeBestLift(index);
+        liftDiv.appendChild(trashBtn);
 
-          container.appendChild(liftDiv);
-      });
+        container.appendChild(liftDiv);
+    });
 
-      if (appData.bestLifts.length < 3) {
-          const addBtn = document.createElement('button');
-          addBtn.textContent = '+ Add Lift';
-          addBtn.style.marginTop = '5px';
-          addBtn.onclick = addBestLift;
-          container.appendChild(addBtn);
-      }
-  }
-
-  function removeBestLift(index) {
-      if (confirm('Remove this lift from Best Lifts?')) {
-          appData.bestLifts.splice(index, 1);
-          saveData();
-          renderBestLifts();
-      }
-  }
-
-  function editBestLift(index) {
-      const lift = appData.bestLifts[index];
-      if (!lift) return;
-
-      const allExercises = getAllExercises();
-      if (allExercises.length === 0) {
-          alert('No exercises available to track.');
-          return;
-      }
-
-      const exerciseName = prompt(
-          `Enter new exercise name to track:\nAvailable: ${allExercises.join(', ')}`,
-          lift.exercise
-      );
-
-      if (!exerciseName) return; // user cancelled
-      if (!allExercises.includes(exerciseName)) {
-          alert('Exercise not found. Make sure you type it exactly as in your days.');
-          return;
-      }
-
-      // Update safely
-      lift.exercise = exerciseName;
-      lift.weight = 0;
-      lift.reps = 0;
-
-      saveData();
-      renderBestLifts();
-  }
+    // + Add Lift button if less than 3 lifts
+    if (appData.bestLifts.length < 3) {
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ Add Lift';
+        addBtn.onclick = addBestLift;
+        container.appendChild(addBtn); // Direct child so CSS applies
+    }
+}
 
   function addBestLift() {
       if (appData.bestLifts.length >= 3) {
