@@ -37,6 +37,7 @@
   html, body {
     height: 100%;
     margin: 0;
+    overflow: hidden; /* prevents the whole page from scrolling */
     display: flex;
     flex-direction: column;
 }
@@ -68,12 +69,13 @@ input, select, textarea {
   /* Screens */
   .screen {
     min-height: calc(100vh - 60px); /* leave space for tab nav if needed */
-    display: none;
+    display: flex;
     flex-direction: column;
     opacity: 0;
     transform: translateX(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    position: absolute;
+    overflow: hidden; /* prevent free movement */
+    position: relative;
     width: 100%;
     top: 0;
     left: 0;
@@ -95,6 +97,7 @@ input, select, textarea {
       margin: 10px 0;
       box-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
+
   .day-card, .best-lift-item, .exercise-log {
     transition: all 0.3s ease;
 }
@@ -270,9 +273,10 @@ button:hover {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
-  #workout-history {
-    max-height: 300px; 
+#workout-history {
+    max-height: calc(100vh - 200px); /* dynamic for all phones */
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 
