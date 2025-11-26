@@ -37,7 +37,8 @@
   html, body {
     height: 100%;
     margin: 0;
-    overflow: hidden; /* prevents the whole page from scrolling */
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
@@ -60,15 +61,16 @@ input, select, textarea {
     max-width: 900px;
     width: 100%;
     margin: 0 auto;
-    padding: 20px;
-    padding-bottom: 110px; /* space for bottom tab nav */
+    padding-top: 60px; /* space for profile button */
+    padding: 12px;
+    padding-bottom: 80px; /* space for bottom tab nav */
     box-sizing: border-box;
 }
 
 
   /* Screens */
   .screen {
-    min-height: calc(100vh - 60px); /* leave space for tab nav if needed */
+    min-height: auto;
     display: flex;
     flex-direction: column;
     opacity: 0;
@@ -274,10 +276,11 @@ button:hover {
     50% { transform: scale(1.05); }
 }
 #workout-history {
-    max-height: calc(100vh - 200px); /* dynamic for all phones */
+    max-height: 300px; 
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
+
+
 
 
   /* Profile menu / submenu */
