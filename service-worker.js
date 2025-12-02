@@ -2,7 +2,7 @@ const CACHE_NAME = 'strain-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/Strain2.css',
+  '/StrainFixed.css',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
