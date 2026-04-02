@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Strain</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@ body[data-theme="green"] {
 
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; width: 100%; overflow: hidden; }
+html, body { height: 100%; width: 100%; overflow: hidden; overscroll-behavior: none; touch-action: pan-y; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -369,7 +369,7 @@ nav button.active { color: var(--accent); }
   padding: 10px 12px;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   outline: none;
   transition: border-color .15s;
 }
@@ -505,7 +505,7 @@ nav button.active { color: var(--accent); }
   padding: 9px 12px;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 14px; outline: none;
+  font-size: 16px; outline: none;
 }
 .add-ex-row input:focus { border-color: var(--accent); }
 .editor-actions { display: flex; gap: 8px; margin-top: 14px; }
