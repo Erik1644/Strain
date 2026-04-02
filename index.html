@@ -283,13 +283,40 @@ nav button.active{color:var(--accent)}
 .add-ex-row input{flex:1}
 .ed-actions{display:flex;gap:8px;margin-top:14px}
 
-/* DRAG REORDER */
-.drag-handle{
-  color:var(--muted);font-size:16px;cursor:grab;padding:0 8px 0 0;
-  touch-action:none;flex-shrink:0;
+/* UP/DOWN REORDER ARROWS */
+.reorder-btns{display:flex;flex-direction:column;gap:2px;margin-right:8px;flex-shrink:0}
+.reorder-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:1px 4px;border-radius:4px;transition:color .1s}
+.reorder-btn:hover{color:var(--accent)}
+.reorder-btn:disabled{opacity:.2;cursor:default}
+
+/* SUMMARY SCREEN */
+#screen-summary{
+  position:fixed;inset:0;z-index:300;
+  background:var(--bg);overflow-y:auto;overflow-x:hidden;
+  display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:60px 24px 40px;
 }
-.drag-handle:active{cursor:grabbing}
-.drag-over{border-top:2px solid var(--accent) !important}
+#screen-summary.visible{display:flex}
+.summary-icon{font-size:56px;margin-bottom:16px}
+.summary-title{font-family:var(--font-d);font-size:42px;font-weight:900;text-align:center;margin-bottom:4px}
+.summary-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:32px}
+.summary-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:340px;margin-bottom:24px}
+.summary-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
+.summary-stat-val{font-family:var(--font-d);font-size:28px;font-weight:900;color:var(--accent)}
+.summary-stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em}
+.summary-prs{width:100%;max-width:340px;margin-bottom:28px}
+.summary-pr{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(52,199,123,0.1);border:1px solid rgba(52,199,123,0.2);
+  border-radius:10px;padding:10px 14px;margin-bottom:8px;
+}
+.summary-pr-icon{font-size:18px}
+.summary-pr-text{font-size:13px}
+.summary-pr-name{font-weight:600;color:var(--success)}
+
+/* HISTORY DELETE */
+.hist-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px 6px;border-radius:6px;transition:color .1s,background .1s;flex-shrink:0}
+.hist-del:hover{color:var(--danger);background:rgba(255,77,77,.1)}
 
 /* COLOR PICKER */
 .color-picker-row{display:flex;align-items:center;gap:10px;padding:6px 12px 10px}
@@ -382,7 +409,14 @@ nav button.active{color:var(--accent)}
 
 
 
-<button id="quick-add-btn">＋</button>
+<div id="screen-summary">
+  <div class="summary-icon">🏁</div>
+  <div class="summary-title">Workout Done</div>
+  <div class="summary-sub" id="summary-sub"></div>
+  <div class="summary-stats" id="summary-stats"></div>
+  <div class="summary-prs" id="summary-prs"></div>
+  <button class="btn btn-primary" style="width:100%;max-width:340px;padding:14px" id="summary-done-btn">Back to Home</button>
+</div>
 
 <nav>
   <button id="nav-home" class="active">
@@ -606,6 +640,7 @@ function renderActiveDays(){
   if(S.currentWeek<prog.weeks){
     const n=document.createElement('button');n.className='btn btn-ghost btn-sm';n.textContent='Next Week →';
     n.addEventListener('click',()=>{
+      if(!confirm(`Advance to Week ${S.currentWeek+1}?`))return;
       if(!S.completedWeeks.some(cw=>cw.programId===prog.id&&cw.week===S.currentWeek))
         S.completedWeeks.push({programId:prog.id,week:S.currentWeek});
       S.currentWeek++;save();renderHome();
@@ -658,27 +693,16 @@ function openProgEditor(prog){
       dh.appendChild(dni);dh.appendChild(rd);dc.appendChild(dh);
       day.exercises.forEach((ex,ei)=>{
         const row=document.createElement('div');row.className='ed-ex-row';
-        row.draggable=true;row.dataset.idx=ei;
-        const handle=document.createElement('span');handle.className='drag-handle';handle.textContent='⠿';
-        row.innerHTML=`<span>${esc(ex.name)}</span>`;
-        row.prepend(handle);
+        const arrows=document.createElement('div');arrows.className='reorder-btns';
+        const upB=document.createElement('button');upB.className='reorder-btn';upB.textContent='↑';upB.disabled=ei===0;
+        upB.addEventListener('click',()=>{if(ei===0)return;const t=day.exercises.splice(ei,1)[0];day.exercises.splice(ei-1,0,t);rDays();});
+        const dnB=document.createElement('button');dnB.className='reorder-btn';dnB.textContent='↓';dnB.disabled=ei===day.exercises.length-1;
+        dnB.addEventListener('click',()=>{if(ei===day.exercises.length-1)return;const t=day.exercises.splice(ei,1)[0];day.exercises.splice(ei+1,0,t);rDays();});
+        arrows.appendChild(upB);arrows.appendChild(dnB);
+        const nm=document.createElement('span');nm.textContent=ex.name;nm.style.flex='1';
         const re=document.createElement('button');re.className='rm-btn';re.innerHTML='−';
         re.addEventListener('click',()=>{day.exercises.splice(ei,1);rDays();});
-        row.appendChild(re);
-        // Drag events
-        row.addEventListener('dragstart',e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',ei);row.style.opacity='.4';});
-        row.addEventListener('dragend',()=>{row.style.opacity='';document.querySelectorAll('.ed-ex-row').forEach(r=>r.classList.remove('drag-over'));});
-        row.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';row.classList.add('drag-over');});
-        row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
-        row.addEventListener('drop',e=>{
-          e.preventDefault();row.classList.remove('drag-over');
-          const from=parseInt(e.dataTransfer.getData('text/plain'));
-          const to=parseInt(row.dataset.idx);
-          if(from===to)return;
-          const moved=day.exercises.splice(from,1)[0];
-          day.exercises.splice(to,0,moved);
-          rDays();
-        });
+        row.appendChild(arrows);row.appendChild(nm);row.appendChild(re);
         dc.appendChild(row);
       });
       const ar=document.createElement('div');ar.className='add-ex-row';
@@ -786,6 +810,12 @@ function buildInput(wk,ex,idx){
   const isLast=idx===wk.exercises.length-1;
   const nb=document.createElement('button');nb.className='btn btn-ghost btn-sm';nb.textContent=isLast?'🏁 Finish':'Next →';
   nb.addEventListener('click',()=>{if(!isLast){wk.currentIdx++;save();renderWorkout();}else finishWorkout();});
+  // Back button (not on first exercise)
+  if(idx>0){
+    const bb=document.createElement('button');bb.className='btn btn-ghost btn-sm';bb.textContent='← Back';
+    bb.addEventListener('click',()=>{wk.currentIdx--;save();renderWorkout();});
+    acts.appendChild(bb);
+  }
   acts.appendChild(lb);acts.appendChild(ub);acts.appendChild(nb);area.appendChild(acts);
   return area;
 }
@@ -796,10 +826,36 @@ function updateBest(name,w,r){const c=S.bestLifts[name];if(!c||w>c.weight||(w===
 function finishWorkout(){
   const wk=S.currentWorkout;if(!wk)return;
   const vol=wk.exercises.reduce((t,ex)=>t+ex.sets.reduce((s,set)=>s+set.weight*set.reps,0),0);
+
+  // Detect new PRs
+  const prs=[];
+  wk.exercises.forEach(ex=>{
+    if(!ex.sets.length)return;
+    const maxW=Math.max(...ex.sets.map(s=>s.weight));
+    const maxR=ex.sets.filter(s=>s.weight===maxW).reduce((best,s)=>s.reps>best?s.reps:best,0);
+    const prev=S.bestLifts[ex.name];
+    if(!prev||maxW>prev.weight||(maxW===prev.weight&&maxR>prev.reps)){
+      if(prev)prs.push({name:ex.name,weight:maxW,reps:maxR});
+    }
+    updateBest(ex.name,maxW,maxR);
+  });
+
   S.history.unshift({id:wk.id,date:wk.date,programId:wk.programId,programName:wk.programName,week:wk.week,dayId:wk.dayId,dayName:wk.dayName,volume:vol,exercises:wk.exercises.map(ex=>({name:ex.name,sets:[...ex.sets]}))});
   S.currentWorkout=null;save();
   document.getElementById('quick-add-btn').classList.remove('visible');
-  switchTo('home');
+
+  // Show summary
+  const totalSets=wk.exercises.reduce((t,ex)=>t+ex.sets.length,0);
+  document.getElementById('summary-sub').textContent=`${wk.dayName} · ${wk.date}`;
+  document.getElementById('summary-stats').innerHTML=`
+    <div class="summary-stat"><div class="summary-stat-val">${vol}</div><div class="summary-stat-lbl">kg Volume</div></div>
+    <div class="summary-stat"><div class="summary-stat-val">${wk.exercises.length}</div><div class="summary-stat-lbl">Exercises</div></div>
+    <div class="summary-stat"><div class="summary-stat-val">${totalSets}</div><div class="summary-stat-lbl">Total Sets</div></div>
+    <div class="summary-stat"><div class="summary-stat-val">${prs.length}</div><div class="summary-stat-lbl">New PRs</div></div>
+  `;
+  const prsEl=document.getElementById('summary-prs');
+  prsEl.innerHTML=prs.length?prs.map(pr=>`<div class="summary-pr"><span class="summary-pr-icon">🏆</span><span class="summary-pr-text">New PR — <span class="summary-pr-name">${esc(pr.name)}</span>: ${pr.weight}kg × ${pr.reps}</span></div>`).join(''):'';
+  document.getElementById('screen-summary').classList.add('visible');
 }
 
 document.getElementById('quick-add-btn').addEventListener('click',()=>{
@@ -810,7 +866,12 @@ document.getElementById('quick-add-btn').addEventListener('click',()=>{
 
 
 
-/* ── PROGRESS ── */
+document.getElementById('summary-done-btn').addEventListener('click',()=>{
+  document.getElementById('screen-summary').classList.remove('visible');
+  switchTo('home');
+});
+
+
 let volChart=null,exChart=null,activeTab='volume',activeEx=null;
 document.querySelectorAll('.prog-tab').forEach(btn=>btn.addEventListener('click',()=>{
   document.querySelectorAll('.prog-tab').forEach(b=>b.classList.remove('active'));
@@ -866,23 +927,56 @@ function renderExChart(){
   [...S.history].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(h=>{
     const ex=h.exercises.find(e=>e.name===activeEx);
     if(!ex||!ex.sets.length)return;
-    pts.push({date:h.date,weight:Math.max(...ex.sets.map(s=>s.weight))});
+    const maxW=Math.max(...ex.sets.map(s=>s.weight));
+    const vol=ex.sets.reduce((t,s)=>t+s.weight*s.reps,0);
+    pts.push({date:h.date,weight:maxW,vol});
   });
   if(!pts.length){canvas.parentElement.innerHTML='<div class="chart-empty">No data for this exercise yet.</div>';return;}
   const accent=getComputedStyle(document.body).getPropertyValue('--accent').trim();
   exChart=new Chart(canvas.getContext('2d'),{
     type:'line',
-    data:{labels:pts.map(p=>p.date),datasets:[{data:pts.map(p=>p.weight),borderColor:accent,backgroundColor:accent+'22',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},y:{beginAtZero:false,ticks:{color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}}},animation:{duration:400}}
+    data:{
+      labels:pts.map(p=>p.date),
+      datasets:[
+        {label:'Max Weight (kg)',data:pts.map(p=>p.weight),borderColor:accent,backgroundColor:accent+'22',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#fff',yAxisID:'y'},
+        {label:'Volume (kg)',data:pts.map(p=>p.vol),borderColor:'rgba(52,199,123,0.8)',backgroundColor:'rgba(52,199,123,0.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#fff',yAxisID:'y1',borderDash:[4,3]}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{color:'#888',font:{size:10},boxWidth:20,padding:10}}},
+      scales:{
+        x:{ticks:{color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+        y:{beginAtZero:false,ticks:{color:'#666',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'},position:'left'},
+        y1:{beginAtZero:true,ticks:{color:'rgba(52,199,123,0.6)',font:{size:10}},grid:{display:false},position:'right'}
+      },
+      animation:{duration:400}
+    }
   });
 }
 
 function renderHistTab(){
   const el=document.getElementById('history-list');el.innerHTML='';
   if(!S.history.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div>No history yet.</div>';return;}
-  S.history.forEach(h=>{
+  S.history.forEach((h,hi)=>{
     const c=document.createElement('div');c.className='hist-card fu';
-    c.innerHTML=`<div class="hist-top"><div><div class="hist-name">${esc(h.dayName)}</div><div class="hist-date">${h.date}${h.week?' · Week '+h.week:''}</div></div><div style="text-align:right"><div class="hist-vol">${h.volume}<span> kg</span></div></div></div><div class="hist-exes">${h.exercises.map(e=>esc(e.name)).join(' · ')}</div>`;
+    c.innerHTML=`
+      <div class="hist-top">
+        <div>
+          <div class="hist-name">${esc(h.dayName)}</div>
+          <div class="hist-date">${h.date}${h.week?' · Week '+h.week:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="text-align:right"><div class="hist-vol">${h.volume}<span> kg</span></div></div>
+          <button class="hist-del" title="Delete session">🗑</button>
+        </div>
+      </div>
+      <div class="hist-exes">${h.exercises.map(e=>esc(e.name)).join(' · ')}</div>
+    `;
+    c.querySelector('.hist-del').addEventListener('click',()=>{
+      if(!confirm('Delete this session from history?'))return;
+      S.history.splice(hi,1);save();renderHistTab();
+    });
     el.appendChild(c);
   });
 }
