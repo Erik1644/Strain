@@ -283,7 +283,23 @@ nav button.active{color:var(--accent)}
 .add-ex-row input{flex:1}
 .ed-actions{display:flex;gap:8px;margin-top:14px}
 
-/* UP/DOWN REORDER ARROWS */
+/* SET TARGET STEPPER IN EDITOR */
+.sets-stepper{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.stepper-btn{background:var(--surface);border:1px solid var(--border2);color:var(--text);width:26px;height:26px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.stepper-btn:hover{background:var(--card2)}
+.stepper-val{font-family:var(--font-d);font-size:14px;font-weight:700;min-width:24px;text-align:center}
+.stepper-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* SET PROGRESS IN WORKOUT */
+.set-progress{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px 10px;
+}
+.set-pips{display:flex;gap:4px}
+.set-pip{width:10px;height:10px;border-radius:50%;background:var(--border2);transition:background .2s}
+.set-pip.done{background:var(--success)}
+.set-pip.active{background:var(--accent)}
+.set-progress-lbl{font-size:11px;color:var(--muted)}
 .reorder-btns{display:flex;flex-direction:column;gap:2px;margin-right:8px;flex-shrink:0}
 .reorder-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:1px 4px;border-radius:4px;transition:color .1s}
 .reorder-btn:hover{color:var(--accent)}
@@ -626,7 +642,7 @@ function renderActiveDays(){
         </div>
       </div>
       <div>${pills}${more}</div>
-      <button class="btn btn-primary btn-full">${done?'Log Again':'Start Workout'}</button>
+      <button class="btn ${done?'btn-ghost':'btn-primary'} btn-full" style="margin-top:12px">${done?'✓ Done — Log Again':'Start Workout'}</button>
     `;
     card.querySelector('button').addEventListener('click',()=>startWorkout(prog,day));
     el.appendChild(card);
@@ -702,9 +718,19 @@ function openProgEditor(prog){
         dnB.addEventListener('click',()=>{if(ei===day.exercises.length-1)return;const t=day.exercises.splice(ei,1)[0];day.exercises.splice(ei+1,0,t);rDays();});
         arrows.appendChild(upB);arrows.appendChild(dnB);
         const nm=document.createElement('span');nm.textContent=ex.name;nm.style.flex='1';
-        const re=document.createElement('button');re.className='rm-btn';re.innerHTML='−';
+        // Set target stepper
+        if(!ex.targetSets)ex.targetSets=3;
+        const stepper=document.createElement('div');stepper.className='sets-stepper';
+        const lbl=document.createElement('span');lbl.className='stepper-lbl';lbl.textContent='sets';
+        const minusB=document.createElement('button');minusB.className='stepper-btn';minusB.textContent='−';
+        minusB.addEventListener('click',()=>{ex.targetSets=Math.max(1,ex.targetSets-1);valEl.textContent=ex.targetSets;save();});
+        const valEl=document.createElement('span');valEl.className='stepper-val';valEl.textContent=ex.targetSets;
+        const plusB=document.createElement('button');plusB.className='stepper-btn';plusB.textContent='+';
+        plusB.addEventListener('click',()=>{ex.targetSets=Math.min(20,ex.targetSets+1);valEl.textContent=ex.targetSets;save();});
+        stepper.appendChild(lbl);stepper.appendChild(minusB);stepper.appendChild(valEl);stepper.appendChild(plusB);
+        const re=document.createElement('button');re.className='rm-btn';re.style.marginLeft='6px';re.innerHTML='−';
         re.addEventListener('click',()=>{day.exercises.splice(ei,1);rDays();});
-        row.appendChild(arrows);row.appendChild(nm);row.appendChild(re);
+        row.appendChild(arrows);row.appendChild(nm);row.appendChild(stepper);row.appendChild(re);
         dc.appendChild(row);
       });
       const ar=document.createElement('div');ar.className='add-ex-row';
@@ -748,7 +774,7 @@ function startWorkout(prog,day){
     programId:prog.id,programName:prog.name,
     week:S.currentWeek,dayId:day.id,dayName:day.name,
     currentIdx:0,
-    exercises:day.exercises.map(ex=>({name:ex.name,sets:[]}))
+    exercises:day.exercises.map(ex=>({name:ex.name,targetSets:ex.targetSets||3,sets:[]}))
   };
   save();switchTo('workout');
 }
@@ -779,6 +805,21 @@ function renderWorkout(){
     const hd=document.createElement('div');hd.className='ex-card-hd';
     hd.innerHTML=`<span class="ex-card-name">${esc(ex.name)}</span>${badge}`;
     card.appendChild(hd);
+
+    // Set progress pips
+    if(ex.targetSets){
+      const prog=document.createElement('div');prog.className='set-progress';
+      const pips=document.createElement('div');pips.className='set-pips';
+      for(let i=0;i<ex.targetSets;i++){
+        const pip=document.createElement('div');
+        pip.className='set-pip'+(i<ex.sets.length?(i===ex.sets.length-1&&isCur?' active':' done'):'');
+        pips.appendChild(pip);
+      }
+      const lbl=document.createElement('span');lbl.className='set-progress-lbl';
+      lbl.textContent=`${ex.sets.length}/${ex.targetSets} sets`;
+      prog.appendChild(pips);prog.appendChild(lbl);
+      card.appendChild(prog);
+    }
     if(ex.sets.length){
       const sl=document.createElement('div');sl.className='set-list';
       ex.sets.forEach((s,i)=>{const r=document.createElement('div');r.className='set-row';r.innerHTML=`<span>Set ${i+1}</span><span class="set-val">${s.weight} kg × ${s.reps}</span>`;sl.appendChild(r);});
@@ -810,7 +851,11 @@ function buildInput(wk,ex,idx){
   const ub=document.createElement('button');ub.className='btn btn-ghost btn-sm';ub.textContent='Undo';
   ub.addEventListener('click',()=>{if(!ex.sets.length)return;ex.sets.pop();save();renderWorkout();});
   const isLast=idx===wk.exercises.length-1;
-  const nb=document.createElement('button');nb.className='btn btn-ghost btn-sm';nb.textContent=isLast?'🏁 Finish':'Next →';
+  const underTarget=ex.targetSets&&ex.sets.length<ex.targetSets;
+  const nb=document.createElement('button');nb.className='btn btn-ghost btn-sm';
+  nb.textContent=isLast?(underTarget?`🏁 Finish (${ex.sets.length}/${ex.targetSets})`:'🏁 Finish'):(underTarget?`Next → (${ex.sets.length}/${ex.targetSets})`:'Next →');
+  nb.title=underTarget?`Target is ${ex.targetSets} sets — you can still move on`:'';
+  if(underTarget)nb.style.color='var(--warn)';
   nb.addEventListener('click',()=>{if(!isLast){wk.currentIdx++;save();renderWorkout();}else finishWorkout();});
   // Back button (not on first exercise)
   if(idx>0){
